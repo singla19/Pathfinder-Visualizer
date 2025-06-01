@@ -14,7 +14,7 @@ export default class PathfindingVisualizer extends Component {
     this.state = {
       grid: [],
       mouseIsPressed: false,
-      movingNodeType: null, // 'start', 'finish', or null
+      movingNodeType: null,
     };
   }
 
@@ -37,7 +37,6 @@ export default class PathfindingVisualizer extends Component {
     if (!mouseIsPressed) return;
 
     if (movingNodeType === 'start' || movingNodeType === 'finish') {
-      // Don't move onto a wall or onto the finish/start node
       const node = grid[row][col];
       if (node.isWall || (movingNodeType === 'start' && node.isFinish) || (movingNodeType === 'finish' && node.isStart)) return;
 
@@ -175,7 +174,6 @@ export default class PathfindingVisualizer extends Component {
   }
 }
 
-// Helper to get the current start node from the grid
 function getStartNode(grid) {
   for (const row of grid) {
     for (const node of row) {
@@ -185,7 +183,6 @@ function getStartNode(grid) {
   return null;
 }
 
-// Helper to get the current finish node from the grid
 function getFinishNode(grid) {
   for (const row of grid) {
     for (const node of row) {
@@ -197,9 +194,9 @@ function getFinishNode(grid) {
 
 const getInitialGrid = () => {
   const grid = [];
-  for (let row = 0; row < 19; row++) {
+  for (let row = 0; row < 20; row++) {
     const currentRow = [];
-    for (let col = 0; col < 45; col++) {
+    for (let col = 0; col < 50; col++) {
       currentRow.push(createNode(col, row));
     }
     grid.push(currentRow);

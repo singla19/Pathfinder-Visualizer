@@ -21,7 +21,6 @@ export default function Node(props) {
     ? 'node-wall'
     : '';
 
-  // Determine node type for onMouseDown
   let nodeType = null;
   if (isStart) nodeType = 'start';
   else if (isFinish) nodeType = 'finish';
