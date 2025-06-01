@@ -2,7 +2,7 @@ import React, {Component} from 'react';
 import Node from './Node/Node';
 import {dijkstra, getNodesInShortestPathOrder} from '../algorithms/dijkstra';
 
-import './PathfindingVisualizer.css';
+import './Pathfinding.css';
 
 const START_NODE_ROW = 10;
 const START_NODE_COL = 15;
@@ -114,9 +114,9 @@ export default class PathfindingVisualizer extends Component {
 
 const getInitialGrid = () => {
   const grid = [];
-  for (let row = 0; row < 20; row++) {
+  for (let row = 0; row < 19; row++) {
     const currentRow = [];
-    for (let col = 0; col < 50; col++) {
+    for (let col = 0; col < 45; col++) {
       currentRow.push(createNode(col, row));
     }
     grid.push(currentRow);
