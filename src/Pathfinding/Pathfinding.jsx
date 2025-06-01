@@ -14,6 +14,7 @@ export default class PathfindingVisualizer extends Component {
     this.state = {
       grid: [],
       mouseIsPressed: false,
+      movingNodeType: null, // 'start', 'finish', or null
     };
   }
 
@@ -22,25 +23,52 @@ export default class PathfindingVisualizer extends Component {
     this.setState({ grid });
   }
 
-  handleMouseDown(row, col) {
-    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
-    this.setState({ grid: newGrid, mouseIsPressed: true });
+  handleMouseDown(row, col, type) {
+    if (type === 'start' || type === 'finish') {
+      this.setState({ movingNodeType: type, mouseIsPressed: true });
+    } else {
+      const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
+      this.setState({ grid: newGrid, mouseIsPressed: true });
+    }
   }
 
   handleMouseEnter(row, col) {
-    if (!this.state.mouseIsPressed) return;
-    const newGrid = getNewGridWithWallToggled(this.state.grid, row, col);
-    this.setState({ grid: newGrid });
+    const { mouseIsPressed, movingNodeType, grid } = this.state;
+    if (!mouseIsPressed) return;
+
+    if (movingNodeType === 'start' || movingNodeType === 'finish') {
+      // Don't move onto a wall or onto the finish/start node
+      const node = grid[row][col];
+      if (node.isWall || (movingNodeType === 'start' && node.isFinish) || (movingNodeType === 'finish' && node.isStart)) return;
+
+      const newGrid = grid.map(rowArr =>
+        rowArr.map(n => {
+          if (movingNodeType === 'start') {
+            if (n.isStart) return { ...n, isStart: false };
+            if (n.row === row && n.col === col) return { ...n, isStart: true };
+          }
+          if (movingNodeType === 'finish') {
+            if (n.isFinish) return { ...n, isFinish: false };
+            if (n.row === row && n.col === col) return { ...n, isFinish: true };
+          }
+          return n;
+        })
+      );
+      this.setState({ grid: newGrid });
+    } else {
+      const newGrid = getNewGridWithWallToggled(grid, row, col);
+      this.setState({ grid: newGrid });
+    }
   }
 
   handleMouseUp() {
-    this.setState({ mouseIsPressed: false });
+    this.setState({ mouseIsPressed: false, movingNodeType: null });
   }
 
   visualizeDijkstra() {
     const { grid } = this.state;
-    const startNode = grid[START_NODE_ROW][START_NODE_COL];
-    const finishNode = grid[FINISH_NODE_ROW][FINISH_NODE_COL];
+    const startNode = getStartNode(grid);
+    const finishNode = getFinishNode(grid);
     const visitedNodesInOrder = dijkstra(grid, startNode, finishNode);
     const nodesInShortestPathOrder = getNodesInShortestPathOrder(finishNode);
     this.animateDijkstra(visitedNodesInOrder, nodesInShortestPathOrder);
@@ -116,35 +144,55 @@ export default class PathfindingVisualizer extends Component {
           </button>
         </div>
         <div className="grid">
-          {grid.map((row, rowIdx) => {
-            return (
-              <div key={rowIdx}>
-                {row.map((node, nodeIdx) => {
-                  const { row, col, isFinish, isStart, isWall } = node;
-                  return (
-                    <Node
-                      key={nodeIdx}
-                      col={col}
-                      isFinish={isFinish}
-                      isStart={isStart}
-                      isWall={isWall}
-                      mouseIsPressed={mouseIsPressed}
-                      onMouseDown={(row, col) => this.handleMouseDown(row, col)}
-                      onMouseEnter={(row, col) =>
-                        this.handleMouseEnter(row, col)
-                      }
-                      onMouseUp={() => this.handleMouseUp()}
-                      row={row}
-                    />
-                  );
-                })}
-              </div>
-            );
-          })}
+          {grid.map((row, rowIdx) => (
+            <div key={rowIdx}>
+              {row.map((node, nodeIdx) => {
+                const { row, col, isFinish, isStart, isWall } = node;
+                return (
+                  <Node
+                    key={nodeIdx}
+                    col={col}
+                    isFinish={isFinish}
+                    isStart={isStart}
+                    isWall={isWall}
+                    mouseIsPressed={mouseIsPressed}
+                    onMouseDown={(row, col, type) =>
+                      this.handleMouseDown(row, col, type)
+                    }
+                    onMouseEnter={(row, col) =>
+                      this.handleMouseEnter(row, col)
+                    }
+                    onMouseUp={() => this.handleMouseUp()}
+                    row={row}
+                  />
+                );
+              })}
+            </div>
+          ))}
         </div>
       </>
     );
   }
+}
+
+// Helper to get the current start node from the grid
+function getStartNode(grid) {
+  for (const row of grid) {
+    for (const node of row) {
+      if (node.isStart) return node;
+    }
+  }
+  return null;
+}
+
+// Helper to get the current finish node from the grid
+function getFinishNode(grid) {
+  for (const row of grid) {
+    for (const node of row) {
+      if (node.isFinish) return node;
+    }
+  }
+  return null;
 }
 
 const getInitialGrid = () => {
